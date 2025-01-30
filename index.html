@@ -56,10 +56,6 @@
             white-space: pre-wrap; 
             overflow-wrap: break-word; 
         }
-        #statusMessage {
-            margin-top: 10px;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
@@ -77,8 +73,6 @@
         <pre id="templateOutput"></pre>
     </div>
     <button id="copyTemplate">Скопировать текст шаблона</button>
-
-    <div id="statusMessage"></div> <!-- Блок для статуса отправки -->
 
     <h2>Список клиентов</h2>
     <table id="clientTable">
@@ -101,7 +95,6 @@
         const form = document.getElementById('clientForm');
         const tableBody = document.querySelector('#clientTable tbody');
         const templateOutput = document.getElementById('templateOutput');
-        const statusMessage = document.getElementById('statusMessage');
         const companyPhone = "18129392655"; 
         const telegramToken = '7840125369:AAH6xDS0673mmimBxIx6JR69oxj1x8Rx77g'; // Замените на ваш токен
         const chatId = '8110257277'; // Замените на ваш Telegram ID
@@ -184,13 +177,10 @@
 
         document.getElementById('sendTelegram').addEventListener('click', () => {
             const clients = JSON.parse(localStorage.getItem('clients')) || [];
-            if (clients.length === 0) {
-                statusMessage.innerText = 'Нет клиентов для отправки.';
-                return;
-            }
-
-            let messages = clients.map((client, index) => `Клиент #${index + 1}\nФИО: ${client.name}\nТелефон: ${client.phone}`).join('\n\n');
-            sendTelegramMessage(messages);
+            clients.forEach((client, index) => {
+                const message = `Клиент #${index + 1}\nФИО: ${client.name}\nТелефон: ${client.phone}`;
+                sendTelegramMessage(message);
+            });
         });
 
         const sendTelegramMessage = (message) => {
@@ -205,13 +195,11 @@
                 }),
             }).then(response => {
                 if (response.ok) {
-                    statusMessage.innerText = 'Сообщение успешно отправлено!';
+                    console.log('Сообщение отправлено!');
                 } else {
-                    statusMessage.innerText = 'Ошибка при отправке сообщения.';
                     console.error('Ошибка при отправке сообщения:', response.statusText);
                 }
             }).catch(error => {
-                statusMessage.innerText = 'Ошибка сети.';
                 console.error('Ошибка сети:', error);
             });
         };
