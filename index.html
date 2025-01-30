@@ -1,0 +1,235 @@
+Для реализации отправки данных через Telegram-бота, вам потребуется выполнить несколько шагов. Я покажу, как изменить ваш код, чтобы он выполнял эту задачу. 
+
+### Шаги для настройки:
+
+1. **Создайте Telegram-бота** через BotFather и получите токен.
+2. **Получите ваш Telegram ID**. Вы можете сделать это, отправив сообщение своему боту и затем используя специальный API-запрос, чтобы получить свой ID.
+3. Используйте метод `sendMessage` Telegram API для отправки сообщений.
+
+### Изменения в коде:
+
+Вот модифицированный код, в котором удалены кнопки для сохранения в JSON и Excel форматы, и добавлена кнопка "Отправить", которая будет отправлять данные через Telegram-бота:
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список клиентов</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        input {
+            margin: 5px 0;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background-color: #a71d2a;
+        }
+        #template {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            white-space: pre-wrap; 
+            overflow-wrap: break-word; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Добавить клиента</h1>
+    <form id="clientForm">
+        <label for="name">Имя клиента:</label>
+        <input type="text" id="name" required>
+        <label for="phone">Номер телефона:</label>
+        <input type="text" id="phone" required>
+        <button type="submit">Добавить</button>
+    </form>
+    
+    <div id="template">
+        <h3>Шаблон для клиента:</h3>
+        <pre id="templateOutput"></pre>
+    </div>
+    <button id="copyTemplate">Скопировать текст шаблона</button>
+
+    <h2>Список клиентов</h2>
+    <table id="clientTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>ФИО</th>
+                <th>Номер телефона</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Данные будут добавляться сюда -->
+        </tbody>
+    </table>
+
+    <button id="sendTelegram">Отправить</button>
+
+    <script>
+        const form = document.getElementById('clientForm');
+        const tableBody = document.querySelector('#clientTable tbody');
+        const templateOutput = document.getElementById('templateOutput');
+        const companyPhone = "18129392655"; 
+        const telegramToken = '7840125369:AAH6xDS0673mmimBxIx6JR69oxj1x8Rx77g'; // Замените на ваш токен
+        const chatId = '8110257277'; // Замените на ваш Telegram ID
+
+        const loadClients = () => {
+            const clients = JSON.parse(localStorage.getItem('clients')) || [];
+            clients.forEach((client, index) => {
+                addRowToTable(index + 1, client.name, client.phone, index);
+            });
+        };
+
+        const addRowToTable = (index, name, phone, id) => {
+            const row = document.createElement('tr');
+            row.setAttribute('data-id', id);
+            row.innerHTML = `
+                <td>${index}</td>
+                <td>${name}</td>
+                <td>${phone}</td>
+                <td><button class="delete-btn">×</button></td>
+            `;
+            tableBody.appendChild(row);
+
+            row.querySelector('.delete-btn').addEventListener('click', () => {
+                deleteClient(id);
+            });
+
+            row.addEventListener('click', () => {
+                updateTemplate(index);
+            });
+        };
+
+        const deleteClient = (id) => {
+            let clients = JSON.parse(localStorage.getItem('clients')) || [];
+            clients.splice(id, 1);
+            localStorage.setItem('clients', JSON.stringify(clients));
+            reloadTable();
+        };
+
+        const reloadTable = () => {
+            tableBody.innerHTML = '';
+            const clients = JSON.parse(localStorage.getItem('clients')) || [];
+            clients.forEach((client, index) => {
+                addRowToTable(index + 1, client.name, client.phone, index);
+            });
+        };
+
+        const updateTemplate = (id) => {
+            const template = `LuxCargo/${id}\n${companyPhone}\n新疆维吾尔自治区乌鲁木齐市天山区 新疆乌鲁木齐天山区大湾北路西域轻工基地A区87号库 LuxCargo/${id}`;
+            templateOutput.innerText = template;
+        };
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+
+            const clients = JSON.parse(localStorage.getItem('clients')) || [];
+            clients.push({ name, phone });
+            localStorage.setItem('clients', JSON.stringify(clients));
+
+            reloadTable();
+            updateTemplate(clients.length);
+            form.reset();
+        });
+
+        document.getElementById('copyTemplate').addEventListener('click', () => {
+            const templateText = templateOutput.innerText;
+            if (templateText) {
+                const textarea = document.createElement('textarea');
+                textarea.value = templateText;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('Текст шаблона скопирован в буфер обмена');
+            } else {
+                alert('Шаблон пуст. Сначала выберите клиента.');
+            }
+        });
+
+        document.getElementById('sendTelegram').addEventListener('click', () => {
+            const clients = JSON.parse(localStorage.getItem('clients')) || [];
+            clients.forEach((client, index) => {
+                const message = `Клиент #${index + 1}\nФИО: ${client.name}\nТелефон: ${client.phone}`;
+                sendTelegramMessage(message);
+            });
+        });
+
+        const sendTelegramMessage = (message) => {
+            fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: message,
+                }),
+            }).then(response => {
+                if (response.ok) {
+                    console.log('Сообщение отправлено!');
+                } else {
+                    console.error('Ошибка при отправке сообщения:', response.statusText);
+                }
+            }).catch(error => {
+                console.error('Ошибка сети:', error);
+            });
+        };
+
+        loadClients();
+    </script>
+</body>
+</html>
+```
+
+### Замены, внесенные в код:
+1. Удалены кнопки для сохранения в JSON и Excel.
+2. Добавлена кнопка "Отправить", которая собирает данные о клиентах и отправляет их через Telegram-бота.
+3. Добавлена функция `sendTelegramMessage`, которая использует `fetch` для отправки сообщений в Telegram.
+
+### Что нужно для работы:
+- Замените `YOUR_TELEGRAM_BOT_TOKEN` на токен вашего Telegram-бота.
+- Замените `YOUR_CHAT_ID` на ваш Telegram ID, чтобы сообщения отправлялись вам в личные сообщения.
+
+Теперь, когда вы нажмете кнопку "Отправить", бот будет отправлять данные о каждом клиенте в ваш Telegram. Убедитесь, что ваш бот активен и имеет разрешение на отправку сообщений!
