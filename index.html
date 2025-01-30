@@ -9,7 +9,7 @@
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        table {
+        table 
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
@@ -121,90 +121,4 @@
                 deleteClient(id);
             });
 
-            row.addEventListener('click', () => {
-                updateTemplate(index);
-            });
-        };
-
-        const deleteClient = (id) => {
-            let clients = JSON.parse(localStorage.getItem('clients')) || [];
-            clients.splice(id, 1);
-            localStorage.setItem('clients', JSON.stringify(clients));
-            reloadTable();
-        };
-
-        const reloadTable = () => {
-            tableBody.innerHTML = '';
-            const clients = JSON.parse(localStorage.getItem('clients')) || [];
-            clients.forEach((client, index) => {
-                addRowToTable(index + 1, client.name, client.phone, index);
-            });
-        };
-
-        const updateTemplate = (id) => {
-            const template = `LuxCargo/${id}\n${companyPhone}\n新疆维吾尔自治区乌鲁木齐市天山区 新疆乌鲁木齐天山区大湾北路西域轻工基地A区87号库 LuxCargo/${id}`;
-            templateOutput.innerText = template;
-        };
-
-        form.addEventListener('submit', (event) => {
-            event.preventDefault();
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-
-            const clients = JSON.parse(localStorage.getItem('clients')) || [];
-            clients.push({ name, phone });
-            localStorage.setItem('clients', JSON.stringify(clients));
-
-            reloadTable();
-            updateTemplate(clients.length);
-            form.reset();
-        });
-
-        document.getElementById('copyTemplate').addEventListener('click', () => {
-            const templateText = templateOutput.innerText;
-            if (templateText) {
-                const textarea = document.createElement('textarea');
-                textarea.value = templateText;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                alert('Текст шаблона скопирован в буфер обмена');
-            } else {
-                alert('Шаблон пуст. Сначала выберите клиента.');
-            }
-        });
-
-        document.getElementById('sendTelegram').addEventListener('click', () => {
-            const clients = JSON.parse(localStorage.getItem('clients')) || [];
-            clients.forEach((client, index) => {
-                const message = `Клиент #${index + 1}\nФИО: ${client.name}\nТелефон: ${client.phone}`;
-                sendTelegramMessage(message);
-            });
-        });
-
-        const sendTelegramMessage = (message) => {
-            fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: message,
-                }),
-            }).then(response => {
-                if (response.ok) {
-                    console.log('Сообщение отправлено!');
-                } else {
-                    console.error('Ошибка при отправке сообщения:', response.statusText);
-                }
-            }).catch(error => {
-                console.error('Ошибка сети:', error);
-            });
-        };
-
-        loadClients();
-    </script>
-</body>
-</html>
+ 
