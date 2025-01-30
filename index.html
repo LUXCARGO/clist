@@ -1,16 +1,3 @@
-Для реализации отправки данных через Telegram-бота, вам потребуется выполнить несколько шагов. Я покажу, как изменить ваш код, чтобы он выполнял эту задачу. 
-
-### Шаги для настройки:
-
-1. **Создайте Telegram-бота** через BotFather и получите токен.
-2. **Получите ваш Telegram ID**. Вы можете сделать это, отправив сообщение своему боту и затем используя специальный API-запрос, чтобы получить свой ID.
-3. Используйте метод `sendMessage` Telegram API для отправки сообщений.
-
-### Изменения в коде:
-
-Вот модифицированный код, в котором удалены кнопки для сохранения в JSON и Excel форматы, и добавлена кнопка "Отправить", которая будет отправлять данные через Telegram-бота:
-
-```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -69,6 +56,10 @@
             white-space: pre-wrap; 
             overflow-wrap: break-word; 
         }
+        #statusMessage {
+            margin-top: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -86,6 +77,8 @@
         <pre id="templateOutput"></pre>
     </div>
     <button id="copyTemplate">Скопировать текст шаблона</button>
+
+    <div id="statusMessage"></div> <!-- Блок для статуса отправки -->
 
     <h2>Список клиентов</h2>
     <table id="clientTable">
@@ -108,6 +101,7 @@
         const form = document.getElementById('clientForm');
         const tableBody = document.querySelector('#clientTable tbody');
         const templateOutput = document.getElementById('templateOutput');
+        const statusMessage = document.getElementById('statusMessage');
         const companyPhone = "18129392655"; 
         const telegramToken = '7840125369:AAH6xDS0673mmimBxIx6JR69oxj1x8Rx77g'; // Замените на ваш токен
         const chatId = '8110257277'; // Замените на ваш Telegram ID
@@ -190,10 +184,13 @@
 
         document.getElementById('sendTelegram').addEventListener('click', () => {
             const clients = JSON.parse(localStorage.getItem('clients')) || [];
-            clients.forEach((client, index) => {
-                const message = `Клиент #${index + 1}\nФИО: ${client.name}\nТелефон: ${client.phone}`;
-                sendTelegramMessage(message);
-            });
+            if (clients.length === 0) {
+                statusMessage.innerText = 'Нет клиентов для отправки.';
+                return;
+            }
+
+            let messages = clients.map((client, index) => `Клиент #${index + 1}\nФИО: ${client.name}\nТелефон: ${client.phone}`).join('\n\n');
+            sendTelegramMessage(messages);
         });
 
         const sendTelegramMessage = (message) => {
@@ -208,11 +205,13 @@
                 }),
             }).then(response => {
                 if (response.ok) {
-                    console.log('Сообщение отправлено!');
+                    statusMessage.innerText = 'Сообщение успешно отправлено!';
                 } else {
+                    statusMessage.innerText = 'Ошибка при отправке сообщения.';
                     console.error('Ошибка при отправке сообщения:', response.statusText);
                 }
             }).catch(error => {
+                statusMessage.innerText = 'Ошибка сети.';
                 console.error('Ошибка сети:', error);
             });
         };
@@ -221,15 +220,3 @@
     </script>
 </body>
 </html>
-```
-
-### Замены, внесенные в код:
-1. Удалены кнопки для сохранения в JSON и Excel.
-2. Добавлена кнопка "Отправить", которая собирает данные о клиентах и отправляет их через Telegram-бота.
-3. Добавлена функция `sendTelegramMessage`, которая использует `fetch` для отправки сообщений в Telegram.
-
-### Что нужно для работы:
-- Замените `YOUR_TELEGRAM_BOT_TOKEN` на токен вашего Telegram-бота.
-- Замените `YOUR_CHAT_ID` на ваш Telegram ID, чтобы сообщения отправлялись вам в личные сообщения.
-
-Теперь, когда вы нажмете кнопку "Отправить", бот будет отправлять данные о каждом клиенте в ваш Telegram. Убедитесь, что ваш бот активен и имеет разрешение на отправку сообщений!
